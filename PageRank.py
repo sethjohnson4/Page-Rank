@@ -20,6 +20,7 @@ I compute the results with the power method, and then
 I have two files for this. 'web-Google.txt' and 'web-graph.txt', the google web graph
 is from kaggle and very large. It is very computationally intensive and may result in errors.
 the web graph is a smaller graph, of size 100 which computes quickly and has very readable results.
+To use the google web graph download it with the link.
 
 The link for the google graph: https://www.kaggle.com/datasets/pappukrjha/google-web-graph
 '''
