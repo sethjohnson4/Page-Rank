@@ -18,8 +18,8 @@ and v is the teleportation vector (uniform distribution).
 I compute the results with the power method, and then 
 
 I have two files for this. 'web-Google.txt' and 'web-graph.txt', the google web graph
-is from kaggle and very large. It is very computationally intensive and may result in errors.
-the web graph is a smaller graph, of size 100 which computes quickly and has very readable results.
+is from kaggle and very large. It is very computationally intensive.
+The web graph is a smaller graph, of size 100 which computes quickly and has very readable results.
 To use the google web graph download it with the link.
 
 The link for the google graph: https://www.kaggle.com/datasets/pappukrjha/google-web-graph
@@ -66,36 +66,32 @@ def build_sparse_matrix(G):
     return A
 
 
-def power_method(A, num_iterations=1000, tolerance=1e-6):
-    """Computes the dominant eigenvector using the Power Method."""
-    N = A.shape[0]
+def power_method(P, alpha=0.85, num_iterations=1000, tolerance=1e-6):
+    """
+    Computes PageRank using the Power Method.
 
-    # Initialize with a random vector instead of uniform values
-    x = np.random.rand(N)
-    x /= np.linalg.norm(x, np.inf)  # Normalize using max norm
+    P: transition probability matrix (row-normalized), in CSR format
+    alpha: damping factor (0.85 is standard)
+    """
+    N = P.shape[0]
+
+    # Start with uniform vector (probability distribution)
+    x = np.ones(N) / N
+
+    # Teleportation vector (uniform for simplicity)
+    e = np.ones(N) / N
 
     for k in range(num_iterations):
-        # Compute y = A * x
-        y = A.dot(x)
+        # Compute new rank: alpha * P * x + (1 - alpha) * e
+        x_new = alpha * P.dot(x) + (1 - alpha) * e
 
-        # Find p: the index of the largest absolute value in y
-        p = np.argmax(np.abs(y))
-
-        # Compute dominant eigenvalue estimate
-        mu = y[p]
-
-        # Normalize x using y[p]
-        y /= mu
-
-        # Compute error
-        err = np.linalg.norm(x - y, np.inf)
-
-        # Check for convergence
+        # Check convergence with L1 norm
+        err = np.linalg.norm(x_new - x, 1)
         if err < tolerance:
             print(f"Power Method converged in {k + 1} iterations.")
-            return y
+            return x_new
 
-        x = y  # Update x for next iteration
+        x = x_new
 
     print("Power Method did not converge.")
     return x
@@ -121,7 +117,7 @@ def page_rank_jacobi(G, alpha=0.85, tol=1e-6, max_iter=500):
 
     # Jacobi iteration
     for iteration in range(max_iter):
-        r_new = (b - R.dot(r)) / D  # Only sparse operations!
+        r_new = (b - R.dot(r)) / D
         if np.linalg.norm(r_new - r, 1) < tol:
             print(f"Jacobi method converged in {iteration} iterations.")
             return r / np.sum(r)
@@ -161,9 +157,8 @@ def page_rank_gauss_seidel(G, alpha=0.85, tol=1e-6, max_iter=500):
 
 
 # Run the functions
-# web-Google.txt is much larger and very computationally expensive
-#file_path = "web-Google.txt"
-file_path = "web_graph.txt"
+file_path = "web-Google.txt"
+#file_path = "web_graph.txt"
 
 G = load_graph(file_path)
 A = build_sparse_matrix(G)
